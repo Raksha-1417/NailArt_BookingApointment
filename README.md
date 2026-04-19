@@ -1,923 +1,306 @@
-# Nail Art Booking Website - Complete Documentation
+# Shivya's Nail Studio
 
-**Project Status**: ✅ Production Ready
-**Tech Stack**: Next.js 14 | React 18 | Supabase | Tailwind CSS | TypeScript
-**Last Updated**: 2026-04-02
+A premium nail art booking website built with Next.js. The app lets customers sign in, choose nail services and enhancements, pick an available appointment time, and submit a booking. It also includes an admin area for managing services, bookings, reports, and studio operations.
 
----
+Live deployment: [https://shivyas-nail-art-weld.vercel.app/](https://shivyas-nail-art-weld.vercel.app/)
 
-## 📑 Table of Contents
+## Project Overview
 
-1. [Quick Start](#quick-start)
-2. [Project Overview](#project-overview)
-3. [Setup & Installation](#setup--installation)
-4. [Environment Variables](#environment-variables)
-5. [Database Setup](#database-setup)
-6. [Development](#development)
-7. [Building & Deployment](#building--deployment)
-8. [Features & Components](#features--components)
-9. [API Documentation](#api-documentation)
-10. [Admin Panel](#admin-panel)
-11. [Security](#security)
-12. [Performance](#performance)
-13. [Testing](#testing)
-14. [Troubleshooting](#troubleshooting)
-15. [Maintenance](#maintenance)
+Shivya's Nail Studio is designed as a full booking experience for a luxury nail artist. The public site introduces the studio, displays curated services, and guides customers into a services-first booking flow.
 
----
+Main capabilities:
 
-## 🚀 Quick Start
+- Luxury home page with service highlights, gallery sections, booking steps, and branded visuals.
+- Customer login and signup using Supabase Auth when configured, with a local demo fallback for development.
+- Services page with multi-service selection and optional treatment enhancements.
+- Booking page with calendar, time-slot availability, customer details, total duration, and total price.
+- Booking conflict checks so overlapping appointments cannot be created for the same date and time.
+- Booking confirmation flow and optional email notifications.
+- Admin dashboard for bookings, services, reports, and revenue overview.
+- Supabase-backed API routes for services, bookings, availability, sitemap, robots, reminders, and email.
+- Jest and Playwright test setup for unit, integration, and end-to-end testing.
+- Vercel-ready configuration.
+
+## Tech Stack
+
+- Next.js 14
+- React 18
+- TypeScript
+- Tailwind CSS and CSS modules
+- Supabase
+- Framer Motion
+- Lucide React icons
+- Jest and Testing Library
+- Playwright
+- Vercel
+
+## Important Links
+
+- Production site: [https://shivyas-nail-art-weld.vercel.app/](https://shivyas-nail-art-weld.vercel.app/)
+- Home: `/`
+- Login and signup: `/login`
+- Services: `/services`
+- Booking: `/book`
+- Booking confirmation: `/book/confirmed`
+- Contact: `/contact`
+- Admin dashboard: `/admin`
+- Admin bookings: `/admin/bookings`
+- Admin services: `/admin/services`
+- Admin reports: `/admin/reports`
+
+## Project Structure
+
+```text
+.
+|-- pages/                  # Next.js pages and API routes
+|-- components/             # Shared UI, booking flow, admin UI, and layout components
+|-- lib/                    # Supabase clients, auth helpers, content, SEO, mappers, utilities
+|-- styles/                 # Global styles and page-level CSS modules
+|-- public/                 # Static assets, images, robots file, service worker
+|-- database/               # Supabase/Postgres schema
+|-- scripts/                # Environment validation scripts
+|-- utils/                  # Admin helper types and formatters
+`-- __tests__/              # Jest, integration, component, and Playwright tests
+```
+
+## Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Supabase account (free tier available)
-- Vercel account (for deployment)
 
-### Installation (5 minutes)
+- Node.js 18 or newer
+- npm
+- Supabase project
+- Vercel account for deployment
+
+### Installation
 
 ```bash
-# 1. Install dependencies
 npm install
+```
 
-# 2. Copy and configure environment
+Create a local environment file:
+
+```bash
 cp .env.example .env.local
-# Edit .env.local with your credentials
+```
 
-# 3. Setup database
-# See Database Setup section below
+Add your Supabase keys and admin settings to `.env.local`, then start the app:
 
-# 4. Start development server
+```bash
 npm run dev
-
-# 5. Open browser
-# Visit http://localhost:3000
 ```
 
----
+Open [http://localhost:3000](http://localhost:3000).
 
-## 📋 Project Overview
+## Environment Variables
 
-### What You Get
-- **Premium Portfolio Website**: Luxury brand aesthetic with rose gold design
-- **Full Booking System**: 5-step booking flow with calendar & time slots
-- **Admin Dashboard**: Complete service & booking management
-- **Gallery**: Image management with lightbox and filters
-- **WhatsApp Integration**: Floating button for direct contact
-- **Email Notifications**: Booking confirmations & reminders
-- **Mobile Responsive**: Works perfectly on all devices
-- **SEO Optimized**: Sitemap, robots.txt, meta tags
-- **Performance Optimized**: Service workers, image optimization, code splitting
+The starter variables are listed in `.env.example`.
 
-### Architecture
-```
-nail-art/
-├── pages/              # Next.js pages & API routes
-├── components/         # React components (17 total)
-├── lib/               # Utilities, hooks, database client
-├── styles/            # Global CSS & Tailwind config
-├── public/            # Static assets, service worker
-├── __tests__/         # Test suites (100+ tests)
-├── database/          # SQL schema for Supabase
-└── scripts/           # Deployment & validation scripts
-```
-
----
-
-## 🔧 Setup & Installation
-
-### Step 1: Clone & Install
+Required for the database-backed app:
 
 ```bash
-git clone <your-repo-url> nail-art-booking
-cd nail-art-booking
-npm install
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
-### Step 2: Create Supabase Project
-
-1. Go to [supabase.com](https://supabase.com)
-2. Create a new project
-3. Go to Settings → API Keys
-4. Copy `URL` and `anon key`
-5. Also get the `service_role key`
-
-### Step 3: Setup Database
-
-In Supabase SQL Editor, run this script:
-
-```sql
--- Services table
-CREATE TABLE services (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-  price NUMERIC(10, 2) NOT NULL,
-  duration_minutes INT DEFAULT 60,
-  image_url TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Bookings table
-CREATE TABLE bookings (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  customer_name VARCHAR(255) NOT NULL,
-  customer_email VARCHAR(255) NOT NULL,
-  customer_phone VARCHAR(20),
-  service_id UUID REFERENCES services(id),
-  booking_date DATE NOT NULL,
-  booking_time TIME NOT NULL,
-  notes TEXT,
-  status VARCHAR(50) DEFAULT 'pending',
-  total_price NUMERIC(10, 2),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Enable RLS
-ALTER TABLE services ENABLE ROW LEVEL SECURITY;
-ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
-
--- Policies (public read, admin write)
-CREATE POLICY services_read ON services FOR SELECT USING (true);
-CREATE POLICY bookings_read ON bookings FOR SELECT USING (true);
-```
-
-See `DATABASE_SETUP.md` for complete schema.
-
----
-
-## 🌍 Environment Variables
-
-Create `.env.local` with these variables:
+Required for admin access and production validation:
 
 ```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-
-# Admin
-ADMIN_SECRET=your-secure-admin-password
-
-# Email (choose one)
-RESEND_API_KEY=your-resend-key           # Recommended
-# OR
-SENDGRID_API_KEY=your-sendgrid-key
-
-# WhatsApp
-NEXT_PUBLIC_WHATSAPP_NUMBER=1234567890   # Country code + number
-
-# OpenAI (optional for AI features)
-OPENAI_API_KEY=your-openai-key
-
-# Deployment
-NEXT_PUBLIC_SITE_URL=https://yoursite.com
+ADMIN_SECRET=your_admin_password
+ADMIN_EMAIL=admin@example.com
+NEXT_PUBLIC_IMAGE_DOMAIN=yourdomain.supabase.co
 ```
 
-### Validation
+Recommended for deployment URLs, SEO, email links, and generated sitemap URLs:
+
 ```bash
-npm run validate-env  # Check all variables are set correctly
+NEXT_PUBLIC_APP_URL=https://shivyas-nail-art-weld.vercel.app
+NEXT_PUBLIC_SITE_URL=https://shivyas-nail-art-weld.vercel.app
 ```
 
----
+Optional integrations:
 
-## 💾 Database Setup
-
-### Supabase Configuration
-
-1. **Enable Authentication** (if needed)
-   - Go to Authentication → Providers
-   - Enable Email for login
-
-2. **Row Level Security (RLS)**
-   - All tables have RLS enabled
-   - Services: Public read access
-   - Bookings: Public insert/read, admin update/delete
-
-3. **Backups**
-   - Supabase provides daily backups (free)
-   - Manual backups available in project settings
-
-### Running Migration
 ```bash
-# Import SQL schema
-supabase db push  # If using Supabase CLI
+NEXT_PUBLIC_WHATSAPP_NUMBER=1234567890
+NEXT_PUBLIC_INSTAGRAM_URL=https://instagram.com/your-profile
+NEXT_PUBLIC_FACEBOOK_URL=https://facebook.com/your-page
+NEXT_PUBLIC_TWITTER_URL=https://twitter.com/your-profile
 
-# Or manually:
-# 1. Open Supabase Dashboard
-# 2. Go to SQL Editor
-# 3. Create new query
-# 4. Paste content from database/schema.sql
-# 5. Run Query
+NEXT_PUBLIC_EMAIL_PROVIDER=resend
+RESEND_API_KEY=your_resend_key
+SENDGRID_API_KEY=your_sendgrid_key
+NEXT_PUBLIC_EMAIL_FROM=onboarding@resend.dev
+NEXT_PUBLIC_EMAIL_REPLY_TO=hello@shivyasnailstudio.com
+
+CRON_SECRET=your_cron_secret
+NEXT_PUBLIC_ANALYTICS_ID=your_analytics_id
+NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
 ```
 
----
+AI helper files are present in the repo. If you enable those features, add the matching AI provider keys used by `lib/ai-ready.js`.
 
-## 🧪 Development
-
-### Available Scripts
+Validate required variables:
 
 ```bash
-npm run dev              # Start dev server (port 3000)
-npm run build            # Build for production
-npm run start            # Run production build
+npm run validate-env
+```
+
+## Database Setup
+
+The database source of truth is:
+
+```text
+database/schema.sql
+```
+
+To set up Supabase:
+
+1. Create a Supabase project.
+2. Open `Project Settings -> API`.
+3. Copy the project URL, anon key, and service role key into `.env.local`.
+4. Open the Supabase SQL Editor.
+5. Run the contents of `database/schema.sql`.
+6. Confirm that the `services` and `bookings` tables exist.
+
+Main tables:
+
+- `services`: stores service title, description, duration, price, image URL, and category.
+- `bookings`: stores customer contact details, selected services, booking date, booking time, status, notes, and total price.
+
+The availability API checks existing bookings for conflicts. It also tries to read a `workingHours` table if available, and falls back to `09:00` to `18:00` when that table is not configured.
+
+If appointment reminders are enabled, add a `reminder_sent` boolean column to `bookings` because the cron reminder route reads and updates that field.
+
+More database details are available in `DATABASE_INTEGRATION.md`.
+
+## Available Scripts
+
+```bash
+npm run dev              # Start the local Next.js dev server
+npm run build            # Build the app for production
+npm run start            # Start the production build
 npm run lint             # Run ESLint
-npm run lint:fix         # Fix linting issues
-npm run typecheck        # TypeScript type checking
-
-# Testing
-npm run test             # Jest tests
-npm run test:watch       # Watch mode
-npm run test:coverage    # Coverage report
-npm run e2e              # Playwright tests
-npm run e2e:ui           # E2E with UI
-npm run e2e:debug        # Debug E2E tests
-npm run e2e:report       # View test report
-
-# Pre-deployment
-npm run pre-deploy       # Full validation (lint + tests + env)
-npm run build-analyze    # Bundle size analysis
+npm run lint:fix         # Fix lint issues where possible
+npm run type-check       # Run TypeScript checks
+npm run test             # Run Jest tests
+npm run test:watch       # Run Jest in watch mode
+npm run test:coverage    # Generate Jest coverage report
+npm run e2e              # Run Playwright tests
+npm run e2e:ui           # Open Playwright UI mode
+npm run e2e:debug        # Debug Playwright tests
+npm run e2e:report       # Open the Playwright report
+npm run test:all         # Run lint, coverage, and e2e tests
+npm run pre-deploy       # Run tests and environment validation
+npm run build-analyze    # Analyze production bundle size
+npm run deploy           # Deploy to Vercel production
+npm run deploy-preview   # Deploy a Vercel preview
 ```
 
-### Development Workflow
+## API Routes
 
-1. **Create Feature Branch**
-   ```bash
-   git checkout -b feature/my-feature
-   ```
+Customer and public routes:
 
-2. **Make Changes**
-   - Edit files in `pages/`, `components/`, etc.
-   - Dev server auto-reloads on save
+- `GET /api/services`
+- `GET /api/services/[id]`
+- `POST /api/bookings`
+- `GET /api/available-times?date=YYYY-MM-DD&duration=60`
+- `POST /api/send-email`
+- `GET /api/sitemap`
+- `GET /api/robots`
 
-3. **Test Locally**
-   ```bash
-   npm run test              # Unit tests
-   npm run e2e               # E2E tests
-   npm run lint              # Check code quality
-   ```
+Optional AI helper routes:
 
-4. **Commit & Push**
-   ```bash
-   git add .
-   git commit -m "feat: add my feature"
-   git push origin feature/my-feature
-   ```
+- `POST /api/ai/chat`
+- `POST /api/ai/caption`
+- `POST /api/ai/recommendations`
 
-5. **Create Pull Request**
-   - Tests run automatically via GitHub Actions
-   - Preview deployed to Vercel preview URL
+Cron and debugging routes:
 
----
+- `GET /api/cron/reminders`
+- `GET /api/cron/debug`
 
-## 🚀 Building & Deployment
+Admin-protected routes:
 
-### Local Production Build
+- `GET /api/bookings`
+- `PUT /api/bookings/[id]`
+- `DELETE /api/bookings/[id]`
+- `POST /api/services`
+- `PUT /api/services/[id]`
+- `DELETE /api/services/[id]`
+
+Admin API requests must send:
+
+```text
+Authorization: Bearer your_admin_secret
+```
+
+## Deployment
+
+This project is deployed on Vercel:
+
+```text
+https://shivyas-nail-art-weld.vercel.app/
+```
+
+For Vercel deployment:
+
+1. Push the project to GitHub.
+2. Import the repository in Vercel.
+3. Add all required environment variables in Vercel project settings.
+4. Set production URLs:
 
 ```bash
-npm run build-production   # Build for production
-npm run start-production   # Run production build locally
+NEXT_PUBLIC_APP_URL=https://shivyas-nail-art-weld.vercel.app
+NEXT_PUBLIC_SITE_URL=https://shivyas-nail-art-weld.vercel.app
 ```
 
-### Vercel Deployment
+5. Deploy.
 
-#### Option 1: Git Auto-Deploy (Recommended)
-
-1. Go to [vercel.com](https://vercel.com)
-2. Click "New Project"
-3. Select your GitHub repository
-4. Configure environment variables in Vercel dashboard
-5. Click Deploy
-
-Auto-deploys on every push to `main` branch.
-
-#### Option 2: Manual Deploy via CLI
+You can also deploy from the CLI:
 
 ```bash
-npm install -g vercel      # Install once
-
-# First-time setup
-vercel                      # Follow prompts
-
-# Deploy
-vercel --prod              # Production deployment
-vercel                      # Preview deployment
+npm run deploy
 ```
 
-### Deployment Checklist
+## Testing
 
-- [ ] All tests pass (`npm run test:all`)
-- [ ] Environment variables set in Vercel
-- [ ] Database backups created
-- [ ] Domain configured (DNS settings)
-- [ ] SSL certificate generated (automatic on Vercel)
-- [ ] Branch protection rules enabled
-- [ ] CI/CD workflow active
-
----
-
-## 🎨 Features & Components
-
-### Core Features
-
-#### 1. Booking System
-- **5-Step Booking Flow**
-  - Step 1: Select service
-  - Step 2: Choose date
-  - Step 3: Select time slot
-  - Step 4: Enter customer details
-  - Step 5: Confirm & review
-
-- **Smart Calendar**
-  - Prevents past date selection
-  - Shows available time slots
-  - Real-time availability checking
-
-- **Time Slot Management**
-  - 30/60-minute slots
-  - Lunch break support
-  - Holiday exclusion
-
-#### 2. Gallery
-- Image upload & management
-- Lightbox viewer
-- Category filtering
-- Mobile optimization
-
-#### 3. Admin Dashboard
-- Service management (CRUD)
-- Booking status tracking
-- Customer information
-- Revenue analytics
-- Email notifications
-
-#### 4. Integrations
-- **WhatsApp**: Floating button with pre-filled messages
-- **Email**: Booking confirmations via Resend/SendGrid
-- **Google Maps**: Location display
-- **OpenAI**: AI-powered recommendations (optional)
-
-### Components (17 total)
-
-**Layout Components:**
-- `Navigation` - Header with logo & menu
-- `Footer` - Footer with links & contact
-- `ErrorBoundary` - Error handling wrapper
-
-**Content Components:**
-- `Hero` - Landing section with CTA
-- `Services` - Service showcase
-- `Gallery` - Image gallery with filters
-- `Testimonials` - Customer reviews
-- `GoogleMapsEmbed` - Location map
-- `SuccessConfirmation` - Booking confirmation screen
-
-**Booking Components:**
-- `BookingForm` - Main booking container
-- `ServiceSelector` - Service selection step
-- `DatePicker` - Calendar & date selection
-- `TimeSlotSelector` - Time slot selection
-- `CustomerDetails` - Contact form
-- `BookingSummary` - Order review
-- `BookingNavigation` - Step navigation
-
-**UI Components:**
-- `LoadingSpinner` - Loading indicator
-- `WhatsAppButton` - Floating chat button
-
----
-
-## 📡 API Documentation
-
-### Endpoints
-
-#### Services
-```
-GET    /api/services           # Get all services
-GET    /api/services/[id]      # Get service by ID
-POST   /api/services           # Create service (admin)
-PUT    /api/services/[id]      # Update service (admin)
-DELETE /api/services/[id]      # Delete service (admin)
-```
-
-#### Bookings
-```
-GET    /api/bookings           # Get all bookings
-GET    /api/bookings/[id]      # Get booking by ID
-POST   /api/bookings           # Create booking
-PUT    /api/bookings/[id]      # Update booking (admin)
-DELETE /api/bookings/[id]      # Delete booking (admin)
-```
-
-#### Time Management
-```
-GET    /api/available-times    # Get available slots
-```
-
-#### Email
-```
-POST   /api/send-email         # Send email notification
-```
-
-#### AI Features
-```
-POST   /api/ai/caption         # Generate image captions
-POST   /api/ai/chat            # AI chat responses
-POST   /api/ai/recommendations # Service recommendations
-```
-
-#### SEO
-```
-GET    /api/sitemap.xml        # Dynamic sitemap
-GET    /api/robots.txt         # Dynamic robots.txt
-```
-
-### Example Usage
-
-```javascript
-// Fetch services
-const response = await fetch('/api/services');
-const services = await response.json();
-
-// Create booking
-const booking = await fetch('/api/bookings', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    customerName: 'Jane Doe',
-    customerEmail: 'jane@example.com',
-    serviceId: 'uuid-here',
-    bookingDate: '2026-05-15',
-    bookingTime: '14:00'
-  })
-});
-```
-
----
-
-## ⚙️ Admin Panel
-
-### Admin Dashboard Features
-
-**URL**: `/admin` (protected with ADMIN_SECRET)
-
-### Accessing Admin
-
-1. Navigate to `/admin`
-2. Enter `ADMIN_SECRET` from environment
-3. Access dashboard
-
-### Admin Functions
-
-#### Services Management
-- View all services
-- Add new service with image
-- Edit existing services
-- Delete services
-- View service bookings
-
-#### Bookings Management
-- View all bookings
-- Filter by status (pending, confirmed, completed, cancelled)
-- Update booking status
-- Send email reminders
-- Cancel bookings
-
-#### Reports
-- Revenue by month
-- Bookings by service
-- Peak booking times
-- Customer insights
-
-#### Settings
-- Email notification preferences
-- Business hours
-- Holiday configuration
-- Payment settings
-
----
-
-## 🔒 Security
-
-### Implemented Security Measures
-
-#### 1. Authentication
-- Admin route protection via secret
-- Supabase RLS (Row Level Security)
-- JWT token validation
-
-#### 2. Data Protection
-- HTTPS only (enforced on Vercel)
-- Environment variables never in code
-- Sensitive keys in `.env.local` (git-ignored)
-- Service role key never exposed to frontend
-
-#### 3. Input Validation
-- Email format validation
-- Date/time validation
-- Required field checking
-- SQL injection prevention via Supabase
-
-#### 4. Rate Limiting
-- API rate limiting via Vercel
-- Email sending throttling
-- Booking frequency limits
-
-#### 5. Security Headers
-```
-X-Content-Type-Options: nosniff
-X-Frame-Options: DENY
-Strict-Transport-Security: max-age=31536000
-Content-Security-Policy: default-src 'self'
-```
-
-### Best Practices
-
-1. **Never commit `.env.local`**
-   ```bash
-   # Already in .gitignore
-   ```
-
-2. **Rotate secrets regularly**
-   - Change ADMIN_SECRET monthly
-   - Regenerate API keys quarterly
-
-3. **Use strong passwords**
-   - Admin secret: 32+ characters
-   - Supabase passwords: complex mix
-
-4. **Monitor access logs**
-   - Check Supabase auth logs
-   - Review Vercel analytics
-
-5. **Enable CORS properly**
-   - Only allow trusted domains
-   - Already configured in `next.config.js`
-
----
-
-## ⚡ Performance
-
-### Optimization Features
-
-#### 1. Image Optimization
-- Next.js Image component with lazy loading
-- WebP/AVIF support
-- Automatic compression
-- Responsive srcset
-
-#### 2. Code Splitting
-- Automatic route-based splitting
-- Vendor chunk optimization
-- React-specific chunks
-
-#### 3. Caching Strategy
-- Service Worker: Cache-first for images
-- API responses: Network-first with fallback
-- HTML: Stale-while-revalidate
-
-#### 4. Database
-- Indexed queries
-- Efficient filtering
-- Connection pooling
-
-#### 5. API Performance
-- Supabase real-time (optional)
-- Pagination support
-- Request caching headers
-
-### Performance Targets
-
-- **LCP** (Largest Contentful Paint): < 2.5s
-- **FID** (First Input Delay): < 100ms
-- **CLS** (Cumulative Layout Shift): < 0.1
-
-### Monitor Performance
+Run the main test suite:
 
 ```bash
-# Build analysis
-npm run build-analyze
-
-# Check bundle size
-npm run build
-
-# Lighthouse in Chrome DevTools
-# Cmd+Shift+P → Lighthouse
+npm run test
 ```
 
----
-
-## 🧪 Testing
-
-### Test Coverage
-
-- **Unit Tests**: Components, utilities (Jest)
-- **Integration Tests**: API endpoints
-- **E2E Tests**: User workflows (Playwright)
-- **Coverage Target**: 80% lines
-
-### Running Tests
+Run browser end-to-end tests:
 
 ```bash
-# All tests
-npm run test:all            # Lint + unit + E2E
-
-# Unit tests
-npm run test               # Run once
-npm run test:watch         # Watch mode
-npm run test:coverage      # With coverage report
-
-# E2E tests
-npm run e2e               # Run all browsers
-npm run e2e:ui            # Interactive UI
-npm run e2e:debug         # Debug mode
-npm run e2e:report        # View HTML report
-```
-
-### Writing Tests
-
-**Jest Example:**
-```javascript
-describe('BookingForm', () => {
-  it('should render form fields', () => {
-    const { getByLabelText } = render(<BookingForm />);
-    expect(getByLabelText(/email/i)).toBeInTheDocument();
-  });
-});
-```
-
-**Playwright Example:**
-```javascript
-test('booking flow', async ({ page }) => {
-  await page.goto('http://localhost:3000');
-  await page.click('text=Book Now');
-  await page.fill('input[name="email"]', 'test@test.com');
-  await page.click('button:has-text("Next")');
-});
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### Port 3000 Already in Use
-```bash
-# Kill process using port 3000
-# macOS/Linux:
-lsof -ti :3000 | xargs kill -9
-
-# Windows:
-netstat -ano | findstr :3000
-taskkill /PID <PID> /F
-```
-
-#### Database Connection Error
-```
-Error: Invalid Supabase credentials
-```
-**Fix:**
-1. Check `NEXT_PUBLIC_SUPABASE_URL` format
-2. Verify `NEXT_PUBLIC_SUPABASE_ANON_KEY` is correct
-3. Ensure database tables exist
-
-#### Email Not Sending
-```
-Error: Email API key invalid
-```
-**Fix:**
-1. Verify `RESEND_API_KEY` is set
-2. Check email template syntax
-3. Review email logs in Resend dashboard
-
-#### Tests Timing Out
-```
-Error: Timed out waiting 60000ms from config.webServer
-```
-**Fix:**
-```bash
-# Kill all Node processes
-pkill -9 node
-
-# Clear .next cache
-rm -rf .next
-
-# Restart tests
 npm run e2e
 ```
 
-#### Build Failures
-```bash
-# Clear everything and rebuild
-rm -rf node_modules .next
-npm install
-npm run build
-```
-
-### Debug Mode
+Run the full pre-deployment check:
 
 ```bash
-# Enable debug logging
-DEBUG=* npm run dev
-
-# Debug tests
-npm run test:debug
-
-# Debug E2E
-npm run e2e:debug
+npm run pre-deploy
 ```
 
----
+## Admin Notes
 
-## 🛠️ Maintenance
+The admin pages live under `/admin`. The API layer checks `ADMIN_SECRET` through the `Authorization` header.
 
-### Daily Tasks
-- Monitor booking requests
-- Check email delivery
-- Review analytics
+Before sharing admin access in production, keep the admin UI password and backend `ADMIN_SECRET` aligned, and avoid committing real secrets to the repository.
 
-### Weekly Tasks
-- Test booking flow
-- Check admin dashboard
-- Review error logs
-- Backup database
+## Content Notes
 
-### Monthly Tasks
-- Update dependencies
-- Rotate admin secret
-- Review performance metrics
-- Analyze customer feedback
+The customer-facing Shivya service menu is currently defined in:
 
-### Quarterly Tasks
-- Security audit
-- Performance optimization review
-- Update deployment configuration
-- Regenerate API keys
-
-### Update Dependencies
-
-```bash
-# Check for updates
-npm outdated
-
-# Update all
-npm update
-
-# Update specific package
-npm install package-name@latest
-
-# Security audit
-npm audit
-npm audit fix
+```text
+lib/shivyaContent.ts
 ```
 
-### Database Maintenance
+This file controls the main service list, enhancements, booking steps, navigation links, and site name used by the public pages.
 
-```sql
--- Analyze performance
-ANALYZE;
+Supabase service records are used by the API and admin management flows. Keep the static content and database records consistent when changing prices, durations, or service names.
 
--- Vacuum and optimize
-VACUUM ANALYZE;
+## License
 
--- Check table sizes
-SELECT schemaname, tablename,
-  pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename))
-FROM pg_tables
-WHERE schemaname NOT IN ('pg_catalog', 'information_schema');
-```
-
----
-
-## 📞 Support Resources
-
-- **Supabase Docs**: https://supabase.com/docs
-- **Next.js Docs**: https://nextjs.org/docs
-- **Vercel Docs**: https://vercel.com/docs
-- **React Docs**: https://react.dev
-- **Tailwind CSS**: https://tailwindcss.com/docs
-
----
-
-## 📄 File Structure
-
-```
-nail-art/
-├── pages/
-│   ├── _app.tsx              # App wrapper & layout
-│   ├── _document.tsx         # Custom HTML
-│   ├── index.tsx             # Home page
-│   ├── services.tsx          # Services listing
-│   ├── gallery.tsx           # Gallery page
-│   ├── about.tsx             # About page
-│   ├── contact.tsx           # Contact page
-│   ├── book.tsx              # Booking page
-│   ├── admin/
-│   │   ├── index.tsx         # Admin dashboard
-│   │   ├── services.tsx      # Service management
-│   │   ├── bookings.tsx      # Booking management
-│   │   └── reports.tsx       # Analytics & reports
-│   └── api/
-│       ├── services.ts       # Services endpoints
-│       ├── bookings.ts       # Bookings endpoints
-│       ├── available-times.ts
-│       ├── send-email.ts
-│       ├── sitemap.ts
-│       ├── robots.ts
-│       └── ai/               # AI endpoints
-├── components/
-│   ├── Navigation.tsx        # Header
-│   ├── Hero.tsx              # Landing section
-│   ├── Gallery.tsx           # Gallery component
-│   ├── Testimonials.tsx      # Reviews section
-│   ├── GoogleMapsEmbed.tsx   # Map component
-│   ├── WhatsAppButton.tsx    # Chat button
-│   ├── ErrorBoundary.tsx     # Error handler
-│   ├── LoadingSpinner.tsx    # Loading UI
-│   ├── SuccessConfirmation.tsx
-│   ├── admin/                # Admin components
-│   │   ├── ServiceForm.tsx
-│   │   ├── BookingList.tsx
-│   │   └── Reports.tsx
-│   └── booking/              # Booking form steps
-│       ├── BookingForm.tsx
-│       ├── ServiceSelector.tsx
-│       ├── DatePicker.tsx
-│       ├── TimeSlotSelector.tsx
-│       ├── CustomerDetails.tsx
-│       ├── BookingSummary.tsx
-│       └── BookingNavigation.tsx
-├── lib/
-│   ├── supabaseClient.ts     # Supabase setup
-│   ├── emailService.ts       # Email logic
-│   ├── bookingService.ts     # Booking utilities
-│   ├── validationHooks.ts    # Form validation
-│   └── types.ts              # TypeScript types
-├── styles/
-│   ├── globals.css           # Global styles
-│   └── tailwind.config.js    # Tailwind config
-├── public/
-│   ├── sw.js                 # Service worker
-│   ├── offline.html          # Offline page
-│   ├── robots.txt            # SEO robots
-│   └── images/               # Static images
-├── database/
-│   └── schema.sql            # Database schema
-├── __tests__/
-│   ├── components.test.tsx
-│   ├── api.test.ts
-│   ├── booking.test.ts
-│   └── e2e/                  # Playwright tests
-├── jest.config.js            # Jest configuration
-├── playwright.config.ts      # Playwright config
-├── tailwind.config.js        # Tailwind config
-├── tsconfig.json             # TypeScript config
-├── next.config.js            # Next.js config
-├── package.json              # Dependencies
-├── vercel.json               # Vercel deployment
-└── README.md                 # This file
-```
-
----
-
-## ✨ Quick Tips
-
-1. **Modify Colors**
-   - Edit `tailwind.config.js`: `rose-gold` #E6B7A9
-   - Primary: Rose gold, Secondary: Cream #FAF7F4
-
-2. **Add New Service**
-   - Admin dashboard → Services → Add New
-   - Or via API: `POST /api/services`
-
-3. **Change Booking Hours**
-   - Edit `lib/bookingService.ts`
-   - Modify `BUSINESS_HOURS` object
-
-4. **Update Contact Info**
-   - Environment variables
-   - Component props
-   - Database values
-
-5. **Enable WhatsApp**
-   - Set `NEXT_PUBLIC_WHATSAPP_NUMBER`
-   - Button appears automatically
-
-6. **Add New Page**
-   - Create `pages/newpage.tsx`
-   - Add to navigation component
-   - Update sitemap
-
----
-
-## 📝 License & Credits
-
-This project was built with:
-- **Next.js 14** - React framework
-- **Supabase** - Database & auth
-- **Tailwind CSS** - Styling
-- **Vercel** - Hosting & CDN
-
----
-
-**Happy booking! 🎀**
+Private project for Shivya's Nail Studio.
